@@ -1,0 +1,90 @@
+<html>
+	<head>
+		<title>GLTFLoader with OrbitControls</title>
+		<style>
+			body { margin: 0; }
+			canvas { display: block; }
+		</style>
+	</head>
+	<body>
+		<script src="js/three.js"></script>
+		<script src="js/GLTFLoader.js"></script>
+		<script src="js/OrbitControls.js"></script>
+
+		<script>
+
+			var camera, scene, renderer;
+
+			init();
+
+			function init() {
+
+				// Creating the scene
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0x222222 );
+
+				//Creating and adding the lights
+				var light1 = new THREE.DirectionalLight( 0xffffff );
+				light1.position.set( 0.5, 1.0, 0.5 ).normalize();
+				scene.add( light1 );
+
+				var light2 = new THREE.DirectionalLight( 0xffffff );
+				light2.position.set( -0.5, -1.0, -0.5 ).normalize();
+				scene.add( light2 );
+
+				//Adding camera and default camera position
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.5, 200 );
+				camera.position.set(1,1.5,2);
+				scene.add(camera);
+
+				/* //Optional: Creating the grid
+				var grid = new THREE.GridHelper( 20, 20, 0xffffff, 0xbbbbbb ); // dimensions(x,y), color of the two vectors (x,0,0)&(0,x,0) through origin, color of rest of grid
+				scene.add( grid );
+				*/
+
+				//Creating the renderer
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				//Adding the renderer
+				document.body.appendChild( renderer.domElement );
+
+				//Loading the object
+				var loader = new THREE.GLTFLoader();
+				loader.load( 'untitled.gltf', function ( gltf ) {
+				gltf.scene.traverse(function(child){
+         if (child instanceof THREE.Mesh){
+					 child.material.color = new THREE.Color(0xffffff);
+						//let newChild = new THREE.Mesh(child.geometry.clone(),new THREE.MeshStandardMaterial().copy(child.material.clone()));
+						let newChild = child.clone();
+						newChild.material = new THREE.MeshStandardMaterial().copy(child.material);
+						newChild.material.wireframe=true;
+						//child2.material.depthTest=false;
+						scene.add(newChild);
+						scene.add(gltf.scene);
+                }
+         });
+				render();
+				} );
+
+				//Camera controls
+				var controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.addEventListener( 'change', render );
+				controls.update();
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				render();
+			}
+
+			function render() {
+				renderer.render( scene, camera );
+			}
+
+		</script>
+	</body>
+</html>
